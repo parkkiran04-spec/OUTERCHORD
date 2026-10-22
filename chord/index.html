@@ -87,6 +87,8 @@
   .message[hidden]{ display:none; }
 
   /* calibration: ?guide lays the design export over the page */
+  /* the right-hand column (logo, buttons, sources, status) sits a touch above the sheet: 24 units, about 23px at 1920×1080 */
+  #logo, .pill, #sources, .status{ margin-top:-24px; }
   .guide{ left:0; top:0; width:2000px; height:1125px; opacity:.45; pointer-events:none; z-index:9; }
 </style>
 </head>
