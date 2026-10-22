@@ -22,7 +22,7 @@
   // source's index), so new pieces only ever go on the end.
   const SOURCES = {
     cattle:     { name: 'Cattle Mutilation',          color: '#e0442c' },
-    e:          { name: 'The Sound of not the Earth', color: '#7cc9a4' },
+    e:          { name: 'Sound of Not the Earth', color: '#7cc9a4' },
     d:          { name: 'Noctiluca',                  color: '#2fb3c2' },
     imnota:     { name: "I'm not an Alien",           color: '#b4a6de' },
     tenshi:     { name: 'Tenshi no Tsubasa',          color: '#f0ead8' },

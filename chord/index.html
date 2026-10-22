@@ -67,6 +67,8 @@
   #archiveBtn{ top:446px; width:278px; }
   #remakeBtn{ top:529px; width:157px; padding:0; }
   #qrBtn{ top:606px; width:157px; padding:0; }
+  #commentBtn{ top:683px; width:190px; padding:0; }
+  a.pill{ display:flex; align-items:center; justify-content:center; box-sizing:border-box; text-decoration:none; }
 
   /* where the sounds came from, and how many */
   .src{ display:flex; justify-content:space-between; align-items:center; height:40px; color:var(--red); pointer-events:none; }
@@ -110,6 +112,7 @@
   <button class="pill" id="archiveBtn" type="button" disabled>아카이브 및 저장소로 이동</button>
   <button class="pill" id="remakeBtn" type="button" disabled>다시 만들기</button>
   <button class="pill" id="qrBtn" type="button" disabled>QR로 받기</button>
+  <a class="pill" id="commentBtn" href="../comments/index.html">코멘트 남기기</a>
 
   <div id="sources"></div>
   <div class="status" id="status">소리를 모으는 중…</div>
