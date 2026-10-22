@@ -37,7 +37,7 @@
 
   // Where the phone page lives. A QR code made on the exhibition PC
   // (localhost) has to point at the public copy of the site.
-  const PUBLIC_BASE = 'https://parkkiran04-spec.github.io/2ptouterchord/';
+  const PUBLIC_BASE = 'https://parkkiran04-spec.github.io/OUTERCHORD/';
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const fold = (m, lo, hi) => { while (m < lo) m += 12; while (m > hi) m -= 12; return m; };

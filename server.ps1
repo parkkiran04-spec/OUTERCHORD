@@ -13,6 +13,7 @@
 #   /outerchord/api/sound-log           GET | POST one event per request            -> outerchord/sound-data/sound-log.jsonl
 #   /api/reset                          POST  moves all of the above to archive/<time>/ (make chord calls it)
 #   /api/songs                          GET | POST  the songs make chord has made     -> songs/songs.jsonl
+#   /api/comments                       GET | POST  what visitors sent to the comment wall -> comments/data/comments.jsonl
 #   everything else                     static files from this folder
 param([int]$Port = 8765)
 
@@ -401,6 +402,46 @@ function Handle-Songs($ctx) {
 }
 
 # =====================================================================
+# comments  (the comment wall keeps what visitors send from their phones)
+#   GET  /api/comments  -> [{id, text, time}]
+#   POST /api/comments  {id, text, time}, once per id  -> comments/data/comments.jsonl
+#   /api/reset leaves these alone; they are not sound.
+# =====================================================================
+$cmtDir = Join-Path $root 'comments\data'
+New-Item -ItemType Directory -Force $cmtDir | Out-Null
+$cmtFile = Join-Path $cmtDir 'comments.jsonl'
+$cmtIds = New-Object 'System.Collections.Generic.HashSet[string]'
+if (Test-Path $cmtFile) {
+  foreach ($ln in [IO.File]::ReadLines($cmtFile)) {
+    $m = [regex]::Match($ln, '"id":"([A-Za-z0-9]+)"')
+    if ($m.Success) { [void]$cmtIds.Add($m.Groups[1].Value) }
+  }
+}
+
+function Handle-Comments($ctx) {
+  $req = $ctx.Request
+  if ($req.HttpMethod -eq 'POST') {
+    if ($req.ContentLength64 -gt 4KB) { SendObj $ctx 413 @{ ok = $false; error = 'too large' }; return }
+    $o = $null
+    try { $o = (ReadBody $req) | ConvertFrom-Json } catch {}
+    $text = if ($o -and $o.text) { ([string]$o.text).Trim() } else { '' }
+    if (-not $o -or -not ([string]$o.id -match '^[A-Za-z0-9]{6,32}$') -or -not $text -or $text.Length -gt 300) {
+      SendObj $ctx 400 @{ ok = $false; error = 'bad comment' }; return
+    }
+    if ($cmtIds.Add([string]$o.id)) {
+      $line = [ordered]@{ id = [string]$o.id; text = $text; time = [long]$o.time; savedAt = (Get-Date).ToString('o') }
+      [IO.File]::AppendAllText($cmtFile, ((ConvertTo-Json -InputObject $line -Compress) + "`n"), $utf8)
+    }
+    SendObj $ctx 200 @{ ok = $true }
+  }
+  elseif ($req.HttpMethod -eq 'GET') {
+    $lines = if (Test-Path $cmtFile) { @([IO.File]::ReadLines($cmtFile) | Where-Object { $_.Trim() }) } else { @() }
+    SendText $ctx 200 ('[' + ($lines -join ',') + ']')
+  }
+  else { SendText $ctx 405 '{"error":"method"}' }
+}
+
+# =====================================================================
 # reset  (called by "make chord" once it has made its song)
 #   POST /api/reset -> every piece's sound files move to archive/<time>/<piece>/
 #   and the pieces start collecting from nothing. Nothing is deleted.
@@ -444,7 +485,7 @@ Write-Host "  data : cattlemutilation\data, d\sound-data, imnota\sound-archive, 
 Write-Host "  stop : Ctrl+C"
 
 # data folders are written by the server, never served as plain files
-$blocked = '^(archive|songs|cattlemutilation/data|e/sound-data|c3/sound-data|outerchord/sound-data|d/sound-data|imnota/sound-archive)(/|$)|(^|/)\.|\.ps1$|\.bat$'
+$blocked = '^(archive|songs|comments/data|cattlemutilation/data|e/sound-data|c3/sound-data|outerchord/sound-data|d/sound-data|imnota/sound-archive)(/|$)|(^|/)\.|\.ps1$|\.bat$'
 
 while ($l.IsListening) {
   $ctx = $l.GetContext()
@@ -455,6 +496,7 @@ while ($l.IsListening) {
 
     if ($path -eq '/api/reset') { Handle-Reset $ctx; continue }
     if ($path -eq '/api/songs') { Handle-Songs $ctx; continue }
+    if ($path -eq '/api/comments') { Handle-Comments $ctx; continue }
 
     # ---- per-piece APIs ----
     $handled = $false

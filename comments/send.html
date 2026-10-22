@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#191818">
+<title>OUTER CHORD — 코멘트 남기기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+<style>
+  /* The page a visitor lands on after scanning the comment wall's QR code:
+     one box to write in and a button that sends it up onto the wall. */
+  :root{ --bg:#191818; --ink:#e8e2d4; --muted:rgba(232,226,212,.6); --faint:rgba(232,226,212,.22); --red:#b01d12; --red-hi:#d12a1c; }
+  *,*::before,*::after{ box-sizing:border-box; }
+  html,body{ margin:0; min-height:100%; background:var(--bg); color:var(--ink);
+    font-family:'Pretendard Variable', Pretendard, sans-serif; letter-spacing:-.03em; -webkit-font-smoothing:antialiased; }
+  body{ min-height:100svh; }
+  .backdrop{ position:fixed; inset:0; pointer-events:none; opacity:.4;
+    background:var(--bg) url('../main-assets/background.jpg') center / cover no-repeat; }
+  main{ position:relative; max-width:520px; margin:0 auto;
+    padding:max(24px, env(safe-area-inset-top)) 20px max(28px, env(safe-area-inset-bottom));
+    display:flex; flex-direction:column; align-items:center; gap:20px; text-align:center; }
+  .logo{ width:min(62vw, 260px); height:auto; margin-top:6px; }
+  h1{ margin:8px 0 0; font-size:22px; font-weight:600; letter-spacing:-.05em; }
+  .lead{ margin:-8px 0 0; font-size:14px; line-height:1.7; color:var(--muted); }
+  form{ width:100%; display:grid; gap:10px; }
+  textarea{ width:100%; min-height:140px; resize:none; padding:16px; border-radius:14px;
+    border:1px solid var(--faint); background:rgba(25,24,24,.82); color:var(--red-hi);
+    font:500 18px/1.5 'Pretendard Variable', Pretendard, sans-serif; letter-spacing:-.05em; }
+  textarea:focus{ outline:none; border-color:var(--red-hi); }
+  textarea::placeholder{ color:rgba(232,226,212,.35); }
+  .count{ justify-self:end; font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; }
+  button{ appearance:none; width:100%; padding:17px 18px; border:0; border-radius:999px; cursor:pointer;
+    background:var(--red); color:var(--ink); font:600 16px/1 'Pretendard Variable', Pretendard, sans-serif; letter-spacing:-.03em; }
+  button:disabled{ opacity:.4; cursor:default; }
+  .status{ min-height:1.7em; margin:0; font-size:14px; line-height:1.7; }
+  .status.ok{ color:var(--ink); }
+  .status.err{ color:var(--red-hi); }
+  .note{ font-size:12px; line-height:1.75; color:var(--muted); }
+</style>
+</head>
+<body>
+<div class="backdrop" aria-hidden="true"></div>
+
+<main>
+  <img class="logo" src="../main-assets/logo.png" alt="OUTER CHORD — 성간 미아를 위한 불협화음">
+  <h1>코멘트 남기기</h1>
+  <p class="lead">보낸 코멘트는 전시장 화면 위로<br>떠올랐다 사라지기를 반복해요.</p>
+
+  <form id="form">
+    <label for="text" class="note" style="justify-self:start">코멘트</label>
+    <textarea id="text" maxlength="140" placeholder="작품을 보고 떠오른 것을 적어 주세요" required></textarea>
+    <span class="count" id="count">0 / 140</span>
+    <button type="submit" id="send">보내기</button>
+  </form>
+  <p class="status" id="status" role="status"></p>
+  <p class="note">이름은 남지 않아요. 코멘트 글만 화면에 보여요.</p>
+</main>
+
+<script src="../shared/comments.js"></script>
+<script>
+(function () {
+  'use strict';
+  const form = document.getElementById('form');
+  const text = document.getElementById('text');
+  const count = document.getElementById('count');
+  const btn = document.getElementById('send');
+  const status = document.getElementById('status');
+  const say = (msg, kind) => { status.textContent = msg; status.className = 'status ' + (kind || ''); };
+
+  text.maxLength = XGComments.MAX;
+  const update = () => {
+    count.textContent = text.value.length + ' / ' + XGComments.MAX;
+    btn.disabled = !text.value.trim();
+  };
+  text.addEventListener('input', update);
+  update();
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!text.value.trim()) return;
+    btn.disabled = true; btn.textContent = '보내는 중…'; say('');
+    try {
+      await XGComments.send(text.value);
+      text.value = ''; update();
+      say('보냈어요. 화면에 곧 떠오를 거예요.', 'ok');
+      // a short pause before the next one, so one visitor can't flood the wall
+      btn.disabled = true;
+      setTimeout(() => { btn.textContent = '보내기'; update(); }, 4000);
+      btn.textContent = '보냈어요';
+    } catch (err) {
+      btn.textContent = '보내기'; update();
+      say('보내지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.', 'err');
+    }
+  });
+})();
+</script>
+</body>
+</html>
