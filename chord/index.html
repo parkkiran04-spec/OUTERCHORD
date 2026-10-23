@@ -265,9 +265,8 @@ const LOADERS = {
     return { from: 'local', raw: local('passacaglia.soundmem') || [] };
   },
   async outerchord(){
-    // the piece keeps no copy in the browser; without the server there is nothing to read
     if (onServer) try { return { from: 'server', raw: JSON.parse(await getJSON('../outerchord/api/sound-log')) }; } catch (_) {}
-    return { from: 'local', raw: [] };
+    return { from: 'local', raw: local('outerchord.soundlog.v1') || [] };
   },
 };
 
@@ -620,6 +619,7 @@ const LOCAL_KEYS = [
   'notalien.soundmem', 'notalien.soundmem.pending',
   'tenshi.memory.v1',
   'passacaglia.soundmem',
+  'outerchord.soundlog.v1',
 ];
 async function resetAll(){
   let archived = null;

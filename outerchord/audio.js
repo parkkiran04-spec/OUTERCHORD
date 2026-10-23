@@ -2,10 +2,21 @@
 // A small synth: clicking, moving the pointer, and a few of the scene's
 // own animations (the ring's spin, the beam's swing, a star catching
 // the light) each trigger a short tone. Nothing about this is shown on
-// screen — every tone is also fire-and-forget POSTed to the server's
-// /api/sound-log endpoint (see serve.ps1) so the session's sequence of
-// notes is kept, without ever appearing in the UI.
+// screen — every tone is also POSTed to the server's /api/sound-log
+// endpoint (see server.ps1) so the session's sequence of notes is kept,
+// without ever appearing in the UI. Opened as a plain file, or on static
+// hosting with no server behind it (e.g. GitHub Pages), that request
+// fails quietly — so every event is also kept in this browser, the same
+// way the other pieces do, and make chord reads it from there instead.
 (() => {
+  const LOCAL_KEY = 'outerchord.soundlog.v1';
+  function keepLocal(data) {
+    try {
+      const list = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]');
+      list.push(data);
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(list.slice(-5000)));
+    } catch (e) { /* storage blocked or full */ }
+  }
   // C major pentatonic, C3..A5 — no two adjacent scale degrees clash,
   // so whatever position/order they land in, they still sound musical.
   const SCALE_HZ = [
@@ -41,8 +52,10 @@
     return Math.max(0, Math.min(SCALE_HZ.length - 1, i));
   }
 
-  // fire-and-forget: never blocks or throws on the caller
+  // kept locally first (so make chord has it even without a server), then
+  // fire-and-forget POSTed to the server when there is one
   function logEvent(data) {
+    keepLocal(data);
     try {
       navigator.sendBeacon
         ? navigator.sendBeacon('api/sound-log', JSON.stringify(data))
