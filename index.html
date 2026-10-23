@@ -359,15 +359,15 @@
     position:fixed; left:50%;
     bottom:calc(clamp(18px, 3.2vh, 40px) + clamp(96px, 7.6vw, 146px) / 2);
     transform:translate(-50%, 50%);
-    width:calc(clamp(96px, 7.6vw, 146px) + 108px);
-    height:calc(clamp(96px, 7.6vw, 146px) + 108px);
+    width:calc(clamp(96px, 7.6vw, 146px) + 76px);
+    height:calc(clamp(96px, 7.6vw, 146px) + 76px);
     z-index:29; pointer-events:none; display:none;
   }
   body.has-chord .chord-label{ display:block; }
   .chord-label text{
     font-family:'Pretendard Variable', Pretendard, sans-serif;
     font-weight:500; font-size:12px; letter-spacing:.01em;
-    fill:var(--ink); fill-opacity:.85;
+    fill:var(--red);
   }
   /* on a narrow window the bottom-left hint would run under the record */
   @media (max-width: 1100px){
