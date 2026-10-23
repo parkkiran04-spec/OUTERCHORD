@@ -353,9 +353,26 @@
   .chord-btn:focus-visible{ outline:2px solid var(--ink); outline-offset:6px; }
   .chord-btn .shadow{ filter: drop-shadow(0 14px 22px rgba(0,0,0,0.55)); }
   @keyframes spin{ to{ transform: rotate(360deg); } }
+  /* the phrase arcing above the record — shown together with the button,
+     purely a label (it takes no clicks of its own) */
+  .chord-label{
+    position:fixed; left:50%;
+    bottom:calc(clamp(18px, 3.2vh, 40px) + clamp(96px, 7.6vw, 146px) / 2);
+    transform:translate(-50%, 50%);
+    width:calc(clamp(96px, 7.6vw, 146px) + 108px);
+    height:calc(clamp(96px, 7.6vw, 146px) + 108px);
+    z-index:29; pointer-events:none; display:none;
+  }
+  body.has-chord .chord-label{ display:block; }
+  .chord-label text{
+    font-family:'Pretendard Variable', Pretendard, sans-serif;
+    font-weight:500; font-size:12px; letter-spacing:.01em;
+    fill:var(--ink); fill-opacity:.85;
+  }
   /* on a narrow window the bottom-left hint would run under the record */
   @media (max-width: 1100px){
-    body.has-chord .hint{ bottom: calc(clamp(96px, 7.6vw, 146px) + clamp(18px, 3.2vh, 40px) + 18px); }
+    /* +40, not +18, now that the label curving above the record needs room too */
+    body.has-chord .hint{ bottom: calc(clamp(96px, 7.6vw, 146px) + clamp(18px, 3.2vh, 40px) + 40px); }
   }
 
   /* Once a card is opening, the stage is raised above the colour field so
@@ -422,6 +439,13 @@
          part that turns, as the drawn disc did -->
     <span class="shadow"><img class="disc" src="main-assets/chord-record.png" alt="" draggable="false"></span>
   </a>
+
+  <svg class="chord-label" id="chordLabel" viewBox="0 0 200 200" aria-hidden="true">
+    <path id="chordLabelPath" d="M 24,100 A 76,76 0 0,1 176,100" fill="none"/>
+    <text text-anchor="middle">
+      <textPath href="#chordLabelPath" startOffset="50%">버튼을 클릭하시면 음악이 생성됩니다</textPath>
+    </text>
+  </svg>
 
 </div>
 
@@ -603,6 +627,7 @@
   const detailBody = document.getElementById('detailBody');
   const detailGo = document.getElementById('detailGo');
   const chordBtn = document.getElementById('chordBtn');
+  const chordLabel = document.getElementById('chordLabel');
 
   /* "make chord" only turns up once this visitor has been through at least
      one piece — every piece page leaves a mark in sessionStorage on its way
@@ -1274,7 +1299,7 @@
     const openLogoWord = openLogoLine.querySelector('.openlogo__word');
     // fetched now so the swap at the word's entrance never waits on the network
     new Image().src = 'main-assets/logo.png';
-    gsap.set([panelLeft, panelRight, hintEl, chordBtn], { opacity: 0 });
+    gsap.set([panelLeft, panelRight, hintEl, chordBtn, chordLabel], { opacity: 0 });
 
     gsap.timeline({ onComplete: () => { opening.running = false; } })
       // one card, alone in the middle
@@ -1302,7 +1327,7 @@
       .to(openLogo, { opacity: 0, duration: 0.7, ease: 'power1.in' }, 5.9)
       // and finally swings out and grows into the fan
       .to(opening, { blend: 1, duration: 1.8, ease: 'power2.inOut' }, 6.0)
-      .to([panelLeft, panelRight, hintEl, chordBtn],
+      .to([panelLeft, panelRight, hintEl, chordBtn, chordLabel],
           { opacity: 1, duration: 0.5, ease: 'power1.out' }, 7.0);
   }
 
@@ -1466,7 +1491,7 @@
         y: '+=340', opacity: 0,
         duration: 0.4, ease: 'power2.in', stagger: 0.03
       }, 0)
-      .to([panelLeft, panelRight, hintEl, chordBtn],
+      .to([panelLeft, panelRight, hintEl, chordBtn, chordLabel],
           { opacity: 0, duration: 0.3, ease: 'power1.out' }, 0)
       // the record would sit on top of the detail view's type otherwise
       .set(chordBtn, { pointerEvents: 'none' }, 0)
